@@ -26,6 +26,7 @@ const mongoClient = await connectToMongoDB()
 
 const db = mongoClient.db("studio-space")
 const studioCollection = db.collection("studios")
+const bookingCollection = db.collection("bookings")
 
 app.post('/add-studio', async(req, res) =>{
     console.log("Api Called!!")
@@ -44,6 +45,34 @@ app.get('/studios/:id', async(req, res) =>{
     const {id} = req.params
     const result = await studioCollection.findOne({_id: new ObjectId(id)})
     res.send(result)
+})
+
+app.post('/bookings', async(req, res) =>{
+    try {
+    const { studioId, bookingDate, startTime, hours } = req.body;
+
+    // Check collision against pending or confirmed bookings
+    const existingBooking = await bookingCollection.findOne({
+      studioId: studioId,
+      bookingDate: bookingDate,
+      startTime: startTime,
+      status: { $in: ["Confirmed", "Pending"] },
+    });
+
+    if (existingBooking) {
+      return res.status(409).json({
+        message: "Change time! It's already booked.",
+      });
+    }
+
+    const result = await bookingCollection.insertOne(req.body);
+    return res.status(201).json(result);
+  } catch (error) {
+    console.error("Booking Error:", error);
+    return res.status(500).json({
+      message: "Server error while processing booking: " + error.message,
+    });
+  }
 })
 
 // http://localhost:8000
