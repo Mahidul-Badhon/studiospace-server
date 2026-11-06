@@ -47,32 +47,54 @@ app.get('/studios/:id', async(req, res) =>{
     res.send(result)
 })
 
+
+
+//checking time collision between bookings
+function timeToMinutes(timeStr) {
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  return hours * 60 + minutes;
+}
 app.post('/bookings', async(req, res) =>{
     try {
     const { studioId, bookingDate, startTime, hours } = req.body;
 
-    // Check collision against pending or confirmed bookings
-    const existingBooking = await bookingCollection.findOne({
-      studioId: studioId,
-      bookingDate: bookingDate,
-      startTime: startTime,
-      status: { $in: ["Confirmed", "Pending"] },
+    const newStartMinutes = timeToMinutes(startTime);
+    const newEndMinutes = newStartMinutes + Number(hours) * 60;
+
+    const existingBookings = await bookingCollection
+      .find({
+        studioId: studioId,
+        bookingDate: bookingDate,
+        status: { $in: ["Confirmed", "Pending"] },
+      }).toArray();
+
+    const hasCollision = existingBookings.some((booking) => {
+      const existingStart = timeToMinutes(booking.startTime);
+      const existingEnd = existingStart + Number(booking.hours) * 60;
+      return existingStart < newEndMinutes && existingEnd > newStartMinutes;
     });
 
-    if (existingBooking) {
+    if (hasCollision) {
       return res.status(409).json({
-        message: "Change time! It's already booked.",
+        message: "Time slot conflict! Another booking overlaps with these hours.",
       });
     }
 
     const result = await bookingCollection.insertOne(req.body);
     return res.status(201).json(result);
+
   } catch (error) {
     console.error("Booking Error:", error);
     return res.status(500).json({
       message: "Server error while processing booking: " + error.message,
     });
   }
+})
+
+app.get('/my-bookings/:email', async(req, res) =>{
+    const {email} = req.params
+    const result = await bookingCollection.find({email:email}).toArray()
+    res.send(result)
 })
 
 // http://localhost:8000
