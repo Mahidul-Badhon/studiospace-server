@@ -53,6 +53,12 @@ app.delete('/mybookings/:id', async(req, res) =>{
     res.send(result)
 })
 
+app.delete('/mystudios/:id', async(req, res) =>{
+    const {id} = req.params
+    const result = await studioCollection.deleteOne({_id: new ObjectId(id)})
+    res.send(result)
+})
+
 
 //checking time collision between bookings
 function timeToMinutes(timeStr) {
@@ -105,7 +111,13 @@ app.get('/my-bookings/:email', async(req, res) =>{
     res.send(result)
 })
 
-// http://localhost:8000
+app.get('/my-studios/:email', async(req, res) =>{
+    const {email} = req.params
+    const result = await studioCollection.find({ownerEmail:email}).toArray()
+    res.send(result)
+})
+
+// http://localhost:8000/my-studios/:email
 app.get('/', (req, res) =>{
     res.send({message: 'server is running fine!'})
 })
