@@ -53,6 +53,16 @@ app.delete('/mybookings/:id', async(req, res) =>{
     res.send(result)
 })
 
+app.patch('/mystudios/:id', async(req, res) =>{
+  const {id} = req.params
+  const updateData = req.body
+  const result = await studioCollection.updateOne(
+    {_id: new ObjectId(id)},
+    {$set: updateData}
+  )
+  res.json(result)
+})
+
 app.delete('/mystudios/:id', async(req, res) =>{
     const {id} = req.params
     const result = await studioCollection.deleteOne({_id: new ObjectId(id)})
