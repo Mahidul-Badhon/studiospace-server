@@ -47,6 +47,11 @@ app.get('/studios/:id', async(req, res) =>{
     res.send(result)
 })
 
+app.delete('/mybookings/:id', async(req, res) =>{
+    const {id} = req.params
+    const result = await bookingCollection.deleteOne({_id: new ObjectId(id)})
+    res.send(result)
+})
 
 
 //checking time collision between bookings
