@@ -86,7 +86,10 @@ app.post('/bookings', async(req, res) =>{
     }
 
     const result = await bookingCollection.insertOne(req.body);
-    return res.status(201).json(result);
+    return res.status(201).json({
+      success: true,
+      result,
+    });
 
   } catch (error) {
     console.error("Booking Error:", error);
