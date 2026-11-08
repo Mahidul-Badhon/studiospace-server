@@ -48,12 +48,12 @@ const verifyApi = async(req, res, next) =>{
     } catch (error) {
       return res.status(500).send({msg: "Server error!"})
     }
-    console.log(payload)
+    // console.log(payload)
   // console.log(token)
   
 }
 
-app.post('/add-studio', async(req, res) =>{
+app.post('/add-studio', verifyApi, async(req, res) =>{
     console.log("Api Called!!")
     const data = req.body
     const result = await studioCollection.insertOne(data)
@@ -72,13 +72,13 @@ app.get('/studios/:id', verifyApi,async(req, res) =>{
     res.send(result)
 })
 
-app.delete('/mybookings/:id', async(req, res) =>{
+app.delete('/mybookings/:id', verifyApi, async(req, res) =>{
     const {id} = req.params
     const result = await bookingCollection.deleteOne({_id: new ObjectId(id)})
     res.send(result)
 })
 
-app.patch('/mystudios/:id', async(req, res) =>{
+app.patch('/mystudios/:id',verifyApi, async(req, res) =>{
   const {id} = req.params
   const updateData = req.body
   const result = await studioCollection.updateOne(
@@ -88,7 +88,7 @@ app.patch('/mystudios/:id', async(req, res) =>{
   res.json(result)
 })
 
-app.delete('/mystudios/:id', async(req, res) =>{
+app.delete('/mystudios/:id', verifyApi, async(req, res) =>{
     const {id} = req.params
     const result = await studioCollection.deleteOne({_id: new ObjectId(id)})
     res.send(result)
@@ -100,7 +100,7 @@ function timeToMinutes(timeStr) {
   const [hours, minutes] = timeStr.split(":").map(Number);
   return hours * 60 + minutes;
 }
-app.post('/bookings', async(req, res) =>{
+app.post('/bookings', verifyApi, async(req, res) =>{
     try {
     const { studioId, bookingDate, startTime, hours } = req.body;
 
@@ -140,13 +140,13 @@ app.post('/bookings', async(req, res) =>{
   }
 })
 
-app.get('/my-bookings/:email', async(req, res) =>{
+app.get('/my-bookings/:email',verifyApi, async(req, res) =>{
     const {email} = req.params
     const result = await bookingCollection.find({email:email}).toArray()
     res.send(result)
 })
 
-app.get('/my-studios/:email', async(req, res) =>{
+app.get('/my-studios/:email',verifyApi, async(req, res) =>{
     const {email} = req.params
     const result = await studioCollection.find({ownerEmail:email}).toArray()
     res.send(result)
