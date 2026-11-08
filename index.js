@@ -65,12 +65,29 @@ app.get('/studios', async(req, res)=>{
     const result = await studioCollection.find().toArray()
     res.send(result)
 })
+// app.get('/studios/:id', verifyApi,async(req, res) =>{
+//     const {id} = req.params
+//     const result = await studioCollection.findOne({_id: new ObjectId(id)})
+//     res.send(result)
+// })
 
-app.get('/studios/:id', verifyApi,async(req, res) =>{
-    const {id} = req.params
-    const result = await studioCollection.findOne({_id: new ObjectId(id)})
-    res.send(result)
-})
+
+
+app.get("/studios/:id",verifyApi, async (req, res) => {
+  const { id } = req.params;
+
+  // If the ID isn't a valid 24-character hex string, exit early
+  if (!ObjectId.isValid(id)) {
+    return res.status(404).json({ message: "Studio not found" });
+  }
+
+  const result = await studioCollection.findOne({ _id: new ObjectId(id) });
+  if (!result) {
+    return res.status(404).json({ message: "Studio not found" });
+  }
+
+  res.send(result);
+});
 
 app.delete('/mybookings/:id', verifyApi, async(req, res) =>{
     const {id} = req.params
@@ -143,6 +160,11 @@ app.post('/bookings', verifyApi, async(req, res) =>{
 app.get('/my-bookings/:email',verifyApi, async(req, res) =>{
     const {email} = req.params
     const result = await bookingCollection.find({email:email}).toArray()
+    res.send(result)
+})
+
+app.get('/featured-studios', async(req, res) =>{
+  const result = await studioCollection.find().limit(6).toArray()
     res.send(result)
 })
 
