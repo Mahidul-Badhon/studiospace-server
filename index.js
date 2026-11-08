@@ -2,6 +2,7 @@ import express from "express"
 import { MongoClient, ObjectId } from 'mongodb';
 import cors from "cors"
 import 'dotenv/config'
+import { jwtVerify, createRemoteJWKSet } from "jose";
 
 
 const app = express()
@@ -28,6 +29,30 @@ const db = mongoClient.db("studio-space")
 const studioCollection = db.collection("studios")
 const bookingCollection = db.collection("bookings")
 
+const verifyApi = async(req, res, next) =>{
+  const authHeader = req.headers.authorization
+  if(!authHeader){
+    return res.status(401).send({msg: "unauthorized"})
+  }
+  const token = authHeader.split(" ")[1]
+  if(!token){
+    return res.status(401).send({msg: "unauthorized"})
+  }
+
+  const JWKS = createRemoteJWKSet(
+      new URL('http://localhost:3000/api/auth/jwks')
+    )
+    try {
+      const {payload} = await jwtVerify(token, JWKS)
+      next()
+    } catch (error) {
+      return res.status(500).send({msg: "Server error!"})
+    }
+    console.log(payload)
+  // console.log(token)
+  
+}
+
 app.post('/add-studio', async(req, res) =>{
     console.log("Api Called!!")
     const data = req.body
@@ -41,7 +66,7 @@ app.get('/studios', async(req, res)=>{
     res.send(result)
 })
 
-app.get('/studios/:id', async(req, res) =>{
+app.get('/studios/:id', verifyApi,async(req, res) =>{
     const {id} = req.params
     const result = await studioCollection.findOne({_id: new ObjectId(id)})
     res.send(result)
