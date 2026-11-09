@@ -40,7 +40,7 @@ const verifyApi = async(req, res, next) =>{
   }
 
   const JWKS = createRemoteJWKSet(
-      new URL('http://localhost:3000/api/auth/jwks')
+      new URL(`${process.env.CLIENT_URL}/api/auth/jwks`)
     )
     try {
       const {payload} = await jwtVerify(token, JWKS)
@@ -174,7 +174,7 @@ app.get('/my-studios/:email',verifyApi, async(req, res) =>{
     res.send(result)
 })
 
-// http://localhost:8000/my-studios/:email
+
 app.get('/', (req, res) =>{
     res.send({message: 'server is running fine!'})
 })
@@ -182,3 +182,5 @@ app.get('/', (req, res) =>{
 app.listen(PORT, () =>{
     console.log(`server is running at ${PORT}`)
 })
+
+export default app
